@@ -19,7 +19,6 @@ fmt.Printf("Hello, %s\n", *name)
 - Some common patterns
 
 1. Create a file if it doesn't exist and initialize it  
-```go
 ```go 
 func createFile(filename string){
 	// If the file doesn't exist, create it, or append to the file
@@ -59,3 +58,17 @@ func createFile(filename string){
     3. Work with that (append, delete ...)
     4. Marshal the data into json
     5. Write the json data back to the file
+> Make sure the struct fields prepared for containing json data
+1. Make the strcut fields exported by capitalizing them 
+2. add proper `json:"field_name"` tags 
+> OTHERWISE : The `Marshal` / `MarshalIndent` will return an empty struct (So fuc*ing important)
+- Example
+```go
+type Name struct {
+	Name string  `json:"name"`
+	Age  float64 `json:"age"`
+}
+
+// variable to store the json file data
+var people []Name
+```
