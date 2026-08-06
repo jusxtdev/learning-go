@@ -129,20 +129,22 @@ func create_file(filename string) {
 	// If the file doesn't exist, create it, or append to the file
 	var file *os.File
 	var err error
-	if _, err = os.Stat(filename); os.IsNotExist(err) {
-		file, err = os.Create(filename)
-		if err != nil {
-			log.Fatal(err)
-		}
-		_, err = file.Write([]byte("[]"))
-		if err != nil {
-			log.Fatal(err)
-		}
-	} else {
-		file, _ = os.OpenFile(filename, os.O_RDWR|os.O_APPEND, 0660)
-		if err != nil {
-			log.Fatal(err)
-		}
+
+	// return if file already exists
+	if _, err = os.Stat(filename); !os.IsNotExist(err) {
+		return
+	}
+
+	// create new file and
+	file, err = os.Create(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// initialize it with '[]'
+	_, err = file.Write([]byte("[]"))
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	defer func() {
@@ -167,6 +169,9 @@ func write_to_file(filename string, todos []Todo) {
 
 /* HELPERS */
 func get_new_id() int {
+	if len(todos) == 0 {
+		return 1
+	}
 	last_todo := todos[len(todos)-1]
 	return last_todo.Id + 1
 }
