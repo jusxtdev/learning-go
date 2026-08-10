@@ -2,40 +2,42 @@ package main
 
 import "fmt"
 
-type Character struct {
-	name string
-	show string
+type Shape interface {
+	area() float64
+	circumference() float64
 }
 
-type Anime_char struct {
-	Character
-	studio string
+type Rect struct {
+	length  int
+	breadth int
 }
 
-type Movie_char struct {
-	Character
-	actor string
+func (r Rect) area() float64 {
+	return float64(r.length * r.breadth)
+}
+func (r Rect) circumference() float64 {
+	return float64(r.length + r.breadth)
 }
 
-func (c Character) info() {
-	fmt.Printf("Name : %s | Show : %s\n", c.name, c.show)
+type Circle struct {
+	radius float64
 }
 
-func (a Anime_char) get_studio() {
-	fmt.Printf("Studio : %s\n", a.studio)
+func (c Circle) area() float64 {
+	return 3.14 * (c.radius * c.radius)
+}
+func (c Circle) circumference() float64 {
+	return 2 * 3.14 * c.radius
 }
 
-func (m Movie_char) get_actor() {
-	fmt.Printf("Actor : %s\n", m.actor)
+func print_info(s Shape) {
+	fmt.Printf("Area : %f | Circumf : %f \n", s.area(), s.circumference())
 }
 
 func main() {
-	b := Movie_char{Character{name: "Batman", show: "Dark Knight"}, "Christian Bale"}
-	b.info()
-	b.get_actor()
+	r := Rect{length: 12, breadth: 23}
+	print_info(r)
 
-	z := Anime_char{Character{name: "Zoro", show: "One Piece"}, "Toei Animation"}
-	z.info()
-	z.get_studio()
-
+	c := Circle{radius: 32.12}
+	print_info(c)
 }
