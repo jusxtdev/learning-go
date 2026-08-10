@@ -95,3 +95,10 @@ func main() {
 	print_info(c)
 }
 ```
+
+#### Two more things in Polymorphism
+- There are two things supported by Polymorphism
+1. Method overriding
+    - When child class implements it's own version of a method 
+2. Method overloading
+    - Passing variable number of arguments to a method / function
