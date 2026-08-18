@@ -1,0 +1,7 @@
+You can delete the archive files and executable binaries that go install (or go get) produces for a package with go clean -i importpath.... These normally reside under $GOPATH/pkg and $GOPATH/bin, respectively.
+
+Be sure to include ... on the importpath, since it appears that, if a package includes an executable, go clean -i will only remove that and not archive files for subpackages, like gore/gocode in the example below.
+
+Source code then needs to be removed manually from $GOPATH/src.
+
+go clean has an -n flag for a dry run that prints what will be run without executing it, so you can be certain (see go help clean). It also has a tempting -r flag to recursively clean dependencies, which you probably don't want to actually use since you'll see from a dry run that it will delete lots of standard library archive files!
