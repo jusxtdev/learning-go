@@ -11,8 +11,6 @@ type Todo struct {
 	Done  bool   `json:"done"`
 }
 
-var Todos []Todo
-
 func GetAllTodos() []Todo {
 	return Todos
 }
