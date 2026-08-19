@@ -1,8 +1,13 @@
 package main
 
-var Todos []Todo
+import "sync"
 
-var TodoStore interface {
+type MemoryStore struct {
+	mu    sync.RWMutex
+	Todos []Todo
+}
+
+type TodoStore interface {
 	GetAllTodos() []Todo
 	GetTodoById(id int) (Todo, error)
 	AddTodo(title string) Todo

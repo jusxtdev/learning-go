@@ -12,6 +12,10 @@ type Response struct {
 	Data any    `json:"data"`
 }
 
+type TodoHandler struct {
+	store TodoStore
+}
+
 /* GET / */
 func Health(w http.ResponseWriter, r *http.Request) {
 	// check method
@@ -34,14 +38,14 @@ func Health(w http.ResponseWriter, r *http.Request) {
 }
 
 /* GET /todos  */
-func GETTodos(w http.ResponseWriter, r *http.Request) {
+func (h TodoHandler) GETTodos(w http.ResponseWriter, r *http.Request) {
 	// check method
 	if r.Method != http.MethodGet {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 	}
 
 	// get all todos
-	all_todo := GetAllTodos()
+	all_todo := h.store.GetAllTodos()
 	data := map[string]any{
 		"count": len(all_todo),
 		"todos": all_todo,
@@ -62,7 +66,7 @@ func GETTodos(w http.ResponseWriter, r *http.Request) {
 }
 
 /* GET /todos/{id} */
-func GETTodoById(w http.ResponseWriter, r *http.Request) {
+func (h TodoHandler) GETTodoById(w http.ResponseWriter, r *http.Request) {
 	// check method
 	if r.Method != http.MethodGet {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -77,7 +81,7 @@ func GETTodoById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get todo by id, 404 if not found
-	todo, err := GetTodoById(id)
+	todo, err := h.store.GetTodoById(id)
 	if err != nil {
 		http.Error(w, "Todo not found", http.StatusNotFound)
 		return
@@ -102,7 +106,7 @@ type POSTRequestBody struct {
 	Title string `json:"title"`
 }
 
-func POSTTodo(w http.ResponseWriter, r *http.Request) {
+func (h *TodoHandler) POSTTodo(w http.ResponseWriter, r *http.Request) {
 	// check method
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -111,7 +115,10 @@ func POSTTodo(w http.ResponseWriter, r *http.Request) {
 	// decode request body
 	var body POSTRequestBody
 
-	err := json.NewDecoder(r.Body).Decode(&body)
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+
+	err := decoder.Decode(&body)
 	if err != nil {
 		http.Error(w, "Failed to decode response", http.StatusInternalServerError)
 		fmt.Println(err)
@@ -119,7 +126,7 @@ func POSTTodo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// add todo
-	newTodo := AddTodo(body.Title)
+	newTodo := h.store.AddTodo(body.Title)
 
 	// resond, 201
 	response := Response{
@@ -142,7 +149,7 @@ type PUTRequestBody struct {
 	Done  *bool   `json:"done"`
 }
 
-func PUTTodo(w http.ResponseWriter, r *http.Request) {
+func (h *TodoHandler) PUTTodo(w http.ResponseWriter, r *http.Request) {
 	// check method
 	if r.Method != http.MethodPut {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -158,7 +165,11 @@ func PUTTodo(w http.ResponseWriter, r *http.Request) {
 
 	// decode body
 	var body PUTRequestBody
-	err = json.NewDecoder(r.Body).Decode(&body)
+
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+
+	err = decoder.Decode(&body)
 	if err != nil {
 		http.Error(w, "Failed to decode response", http.StatusInternalServerError)
 		fmt.Println(err)
@@ -176,7 +187,7 @@ func PUTTodo(w http.ResponseWriter, r *http.Request) {
 		done = true
 	}
 
-	updated, err := UpdateTodo(id, title, done)
+	updated, err := h.store.UpdateTodo(id, title, done)
 	if err != nil {
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
@@ -198,7 +209,7 @@ func PUTTodo(w http.ResponseWriter, r *http.Request) {
 }
 
 /* DELETE /todos/{id} */
-func DELTodo(w http.ResponseWriter, r *http.Request) {
+func (h *TodoHandler) DELTodo(w http.ResponseWriter, r *http.Request) {
 	// check method
 	if r.Method != http.MethodDelete {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -213,7 +224,7 @@ func DELTodo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// delete todo
-	err = DeleteTodo(id)
+	err = h.store.DeleteTodo(id)
 	if err != nil {
 		http.Error(w, "todo not found", http.StatusNotFound)
 		return
