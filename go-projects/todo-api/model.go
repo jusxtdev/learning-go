@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"slices"
+	"strings"
 )
 
 type Todo struct {
@@ -18,7 +19,9 @@ func (s *MemoryStore) Seed() {
 	s.AddTodo("complete assignments")
 }
 
-func (s *MemoryStore) GetAllTodos() []Todo {
+const ()
+
+func (s *MemoryStore) GetAllTodos(DoneFilter bool, DoneValue bool, title string) []Todo {
 	/*
 		Return a copy of the Todos
 		cuz if you return the reference to the original slice and function ends (hence slice is locked)
@@ -26,14 +29,26 @@ func (s *MemoryStore) GetAllTodos() []Todo {
 		AND if some other routine in modifying the data, you might get DATA RACE
 
 		Hence, return a copy of Todos
+
+		IF DoneFilter is given, then only do filtering of "done" == DoneSearch, otherwise no filtering on that
+		IF title != "" then search for the given title
 	*/
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	out := make([]Todo, len(s.Todos))
-	copy(out, s.Todos)
+	var result []Todo
+	for _, todo := range s.Todos {
+		if title != "" && !strings.Contains(todo.Title, title) {
+			continue
+		}
 
-	return out
+		if DoneFilter != false && todo.Done != DoneValue {
+			continue
+		}
+
+		result = append(result, todo)
+	}
+	return result
 }
 
 func (s *MemoryStore) GetTodoById(id int) (Todo, error) {

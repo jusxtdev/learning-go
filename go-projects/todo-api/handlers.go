@@ -42,10 +42,27 @@ func (h TodoHandler) GETTodos(w http.ResponseWriter, r *http.Request) {
 	// check method
 	if r.Method != http.MethodGet {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// query params
+	title := r.URL.Query().Get("title")
+	isDone := r.URL.Query().Get("isDone")
+	var doneFilter = false
+	var doneValue bool
+
+	if isDone != "" {
+		doneFilter = true
+		val, err := strconv.ParseBool(isDone)
+		if err != nil {
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+			return
+		}
+		doneValue = val
 	}
 
 	// get all todos
-	all_todo := h.store.GetAllTodos()
+	all_todo := h.store.GetAllTodos(doneFilter, doneValue, title)
 	data := map[string]any{
 		"count": len(all_todo),
 		"todos": all_todo,
@@ -120,8 +137,7 @@ func (h *TodoHandler) POSTTodo(w http.ResponseWriter, r *http.Request) {
 
 	err := decoder.Decode(&body)
 	if err != nil {
-		http.Error(w, "Failed to decode response", http.StatusInternalServerError)
-		fmt.Println(err)
+		http.Error(w, "Failed to decode request body", http.StatusBadRequest)
 		return
 	}
 
