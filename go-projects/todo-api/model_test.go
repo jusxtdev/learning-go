@@ -12,7 +12,7 @@ func newTodoMemoryStore(t *testing.T) *MemoryStore {
 func TestGetAllTodos(t *testing.T) {
 	s := newTodoMemoryStore(t)
 
-	if got := s.GetAllTodos(false, false, ""); len(got) != 4 {
+	if got, _ := s.GetAllTodos(false, false, "", 0, 0); len(got) != 4 {
 		t.Fatalf("expected 4 todos got %d", len(got))
 	}
 }
@@ -105,7 +105,7 @@ func TestDeleteTodo(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error : %s", err)
 	}
-	if got := s.GetAllTodos(false, false, ""); len(got) != (3) {
+	if got, _ := s.GetAllTodos(false, false, "", 0, 0); len(got) != (3) {
 		t.Fatalf("expected 3 total todos, got %d", len(got))
 	}
 }

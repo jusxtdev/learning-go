@@ -21,7 +21,7 @@ func (s *MemoryStore) Seed() {
 
 const ()
 
-func (s *MemoryStore) GetAllTodos(DoneFilter bool, DoneValue bool, title string) []Todo {
+func (s *MemoryStore) GetAllTodos(DoneFilter bool, DoneValue bool, title string, page int, limit int) ([]Todo, PaginationData) {
 	/*
 		Return a copy of the Todos
 		cuz if you return the reference to the original slice and function ends (hence slice is locked)
@@ -42,13 +42,37 @@ func (s *MemoryStore) GetAllTodos(DoneFilter bool, DoneValue bool, title string)
 			continue
 		}
 
-		if DoneFilter != false && todo.Done != DoneValue {
+		if DoneFilter && todo.Done != DoneValue {
 			continue
 		}
 
 		result = append(result, todo)
 	}
-	return result
+
+	var pd PaginationData
+
+	if page == 0 || limit == 0 {
+		pd.Page = 1
+		pd.Limit = len(s.Todos)
+		return result, pd
+	}
+
+	start := (page - 1) * limit
+	end := start + limit
+
+	if start >= len(s.Todos) {
+		pd.Page = 1
+		pd.Limit = len(s.Todos)
+		return result, pd
+	} else {
+		if end > len(s.Todos) {
+			end = len(s.Todos)
+		}
+		pd.Page = page
+		pd.Limit = limit
+		result = result[start:end]
+		return result, pd
+	}
 }
 
 func (s *MemoryStore) GetTodoById(id int) (Todo, error) {

@@ -8,7 +8,7 @@ type MemoryStore struct {
 }
 
 type TodoStore interface {
-	GetAllTodos(DoneFilter bool, DoneValue bool, title string) []Todo
+	GetAllTodos(DoneFilter bool, DoneValue bool, title string, page int, limit int) ([]Todo, PaginationData)
 	GetTodoById(id int) (Todo, error)
 	AddTodo(title string) Todo
 	UpdateTodo(id int, newTitle string, done bool) (Todo, error)

@@ -38,7 +38,13 @@ func Health(w http.ResponseWriter, r *http.Request) {
 }
 
 /* GET /todos  */
+type PaginationData struct {
+	Page  int `json:"page"`
+	Limit int `json:"limit"`
+}
+
 func (h TodoHandler) GETTodos(w http.ResponseWriter, r *http.Request) {
+	var err error
 	// check method
 	if r.Method != http.MethodGet {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -55,17 +61,39 @@ func (h TodoHandler) GETTodos(w http.ResponseWriter, r *http.Request) {
 		doneFilter = true
 		val, err := strconv.ParseBool(isDone)
 		if err != nil {
-			http.Error(w, "internal server error", http.StatusInternalServerError)
+			http.Error(w, "invalid query parameters", http.StatusUnprocessableEntity)
 			return
 		}
 		doneValue = val
 	}
 
+	// pagination
+	pageStr := r.URL.Query().Get("page")
+	limitStr := r.URL.Query().Get("limit")
+	var page, limit int
+
+	if pageStr != "" && limitStr != "" {
+		page, err = strconv.Atoi(pageStr)
+		if err != nil {
+			http.Error(w, "invalid query parameters", http.StatusUnprocessableEntity)
+			return
+		}
+		limit, err = strconv.Atoi(limitStr)
+		if err != nil {
+			http.Error(w, "invalid query parameters", http.StatusUnprocessableEntity)
+			return
+		}
+	} else {
+		page = 0
+		limit = 0
+	}
+
 	// get all todos
-	all_todo := h.store.GetAllTodos(doneFilter, doneValue, title)
+	all_todo, pd := h.store.GetAllTodos(doneFilter, doneValue, title, page, limit)
 	data := map[string]any{
-		"count": len(all_todo),
-		"todos": all_todo,
+		"count":      len(all_todo),
+		"pagination": pd,
+		"todos":      all_todo,
 	}
 
 	// respond with todo, 200
@@ -75,7 +103,7 @@ func (h TodoHandler) GETTodos(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	err := json.NewEncoder(w).Encode(response)
+	err = json.NewEncoder(w).Encode(response)
 	if err != nil {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		fmt.Println(err)
